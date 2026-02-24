@@ -42,11 +42,7 @@
       </div>
     <% end %>
 
-    <% if @quiz.media.attached? %>
-      <div class="mt-4">
-        <p class="text-sm text-gray-500">📎 Archivo adjunto: <%= @quiz.media.filename %></p>
-      </div>
-    <% end %>
+    <%= render "shared/media_player", media: @quiz.media %>
   </div>
 
   <%# ══ Estadísticas rápidas ══ %>

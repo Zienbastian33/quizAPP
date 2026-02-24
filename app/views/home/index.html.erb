@@ -25,12 +25,11 @@
   </div>
 
   <%# ══ Quizzes destacados ══ %>
-  <% published_quizzes = Quiz.published.recent.limit(6) %>
-  <% if published_quizzes.any? %>
+  <% if @published_quizzes.any? %>
     <div class="mb-16">
       <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">Quizzes Disponibles</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <% published_quizzes.each do |quiz| %>
+        <% @published_quizzes.each do |quiz| %>
           <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
             <% if quiz.cover_image.attached? %>
               <%= image_tag quiz.cover_image, class: "w-full h-40 object-cover" %>
@@ -53,7 +52,7 @@
         <% end %>
       </div>
 
-      <% if Quiz.published.count > 6 %>
+      <% if @total_published > 6 %>
         <div class="text-center mt-8">
           <%= link_to "Ver todos los quizzes →", quizzes_path,
               class: "text-indigo-600 hover:text-indigo-800 font-medium" %>

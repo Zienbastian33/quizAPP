@@ -1,0 +1,25 @@
+<%# Renderiza un player de video/audio para archivos de Active Storage.
+    Uso: render "shared/media_player", media: @quiz.media %>
+
+<% if media.attached? %>
+  <div class="mt-3">
+    <% if media.content_type&.start_with?("video/") %>
+      <video controls class="rounded-lg max-h-64 w-full bg-black">
+        <source src="<%= url_for(media) %>" type="<%= media.content_type %>">
+        Tu navegador no soporta el tag de video.
+      </video>
+    <% elsif media.content_type&.start_with?("audio/") %>
+      <audio controls class="w-full">
+        <source src="<%= url_for(media) %>" type="<%= media.content_type %>">
+        Tu navegador no soporta el tag de audio.
+      </audio>
+    <% else %>
+      <p class="text-sm text-gray-500">
+        📎 Archivo adjunto:
+        <%= link_to media.filename, url_for(media),
+            target: "_blank", class: "text-indigo-600 hover:text-indigo-800 underline" %>
+        <span class="text-gray-400">(<%= number_to_human_size(media.byte_size) %>)</span>
+      </p>
+    <% end %>
+  </div>
+<% end %>

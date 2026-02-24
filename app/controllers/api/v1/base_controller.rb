@@ -2,6 +2,7 @@ module Api
   module V1
     class BaseController < ActionController::API
       include Pundit::Authorization
+      include Pagy::Method
 
       before_action :authenticate_api_user!
 

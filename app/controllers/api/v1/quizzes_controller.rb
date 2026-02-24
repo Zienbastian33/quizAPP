@@ -6,57 +6,54 @@ module Api
       before_action :set_quiz, only: [:show, :update, :destroy, :publish]
 
       # GET /api/v1/quizzes
+      # Soporta paginación: ?page=1&limit=10
       def index
         if current_user&.admin?
-          quizzes = current_user.quizzes.recent
+          scope = current_user.quizzes.recent
         else
-          quizzes = Quiz.published.recent
+          scope = Quiz.published.recent
         end
+
+        limit = (params[:limit] || 10).to_i.clamp(1, 50)
+        @pagy, quizzes = pagy(:offset, scope, limit: limit)
 
         render json: {
           data: quizzes.map { |q| quiz_json(q) },
-          meta: { total: quizzes.count }
+          meta: {
+            total: @pagy.count,
+            page: @pagy.page,
+            pages: @pagy.last,
+            limit: @pagy.limit[:limit]
+          }
         }
       end
 
       # GET /api/v1/quizzes/:id
       def show
+        authorize @quiz
         render json: { data: quiz_json(@quiz, detail: true) }
       end
 
       # POST /api/v1/quizzes
       def create
-        authorize_admin!
-        return if performed?
         quiz = current_user.quizzes.build(quiz_params)
+        authorize quiz
+        quiz.save!
 
-        if quiz.save
-          render json: { data: quiz_json(quiz) }, status: :created
-        else
-          render json: { errors: quiz.errors.full_messages }, status: :unprocessable_entity
-        end
+        render json: { data: quiz_json(quiz) }, status: :created
       end
 
       # PATCH /api/v1/quizzes/:id
       def update
-        authorize_admin!
-        return if performed?
-        authorize_owner!(@quiz)
-        return if performed?
+        authorize @quiz
+        @quiz.update!(quiz_params)
 
-        if @quiz.update(quiz_params)
-          render json: { data: quiz_json(@quiz) }
-        else
-          render json: { errors: @quiz.errors.full_messages }, status: :unprocessable_entity
-        end
+        render json: { data: quiz_json(@quiz) }
       end
 
       # DELETE /api/v1/quizzes/:id
       def destroy
-        authorize_admin!
-        return if performed?
-        authorize_owner!(@quiz)
-        return if performed?
+        authorize @quiz
 
         unless @quiz.draft?
           render json: { error: "No se puede eliminar un quiz publicado" }, status: :unprocessable_entity
@@ -69,10 +66,7 @@ module Api
 
       # PATCH /api/v1/quizzes/:id/publish
       def publish
-        authorize_admin!
-        return if performed?
-        authorize_owner!(@quiz)
-        return if performed?
+        authorize @quiz, :publish?
 
         if @quiz.publishable?
           @quiz.published!
@@ -100,20 +94,6 @@ module Api
 
       def quiz_params
         params.permit(:title, :description)
-      end
-
-      def authorize_admin!
-        unless current_user&.admin?
-          render json: { error: "Solo administradores pueden realizar esta acción" }, status: :forbidden
-          return
-        end
-      end
-
-      def authorize_owner!(quiz)
-        unless quiz.user == current_user
-          render json: { error: "No tienes permiso sobre este quiz" }, status: :forbidden
-          return
-        end
       end
 
       def quiz_json(quiz, detail: false)

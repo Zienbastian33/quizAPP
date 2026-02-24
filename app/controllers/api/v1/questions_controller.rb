@@ -21,35 +21,25 @@ module Api
 
       # POST /api/v1/quizzes/:quiz_id/questions
       def create
-        authorize_quiz_admin!
-        return if performed?
-
         question = @quiz.questions.build(question_params)
         question.position = @quiz.questions.count + 1
+        authorize question
+        question.save!
 
-        if question.save
-          render json: { data: question_json(question) }, status: :created
-        else
-          render json: { errors: question.errors.full_messages }, status: :unprocessable_entity
-        end
+        render json: { data: question_json(question) }, status: :created
       end
 
       # PATCH /api/v1/quizzes/:quiz_id/questions/:id
       def update
-        authorize_quiz_admin!
-        return if performed?
+        authorize @question
+        @question.update!(question_params)
 
-        if @question.update(question_params)
-          render json: { data: question_json(@question) }
-        else
-          render json: { errors: @question.errors.full_messages }, status: :unprocessable_entity
-        end
+        render json: { data: question_json(@question) }
       end
 
       # DELETE /api/v1/quizzes/:quiz_id/questions/:id
       def destroy
-        authorize_quiz_admin!
-        return if performed?
+        authorize @question
 
         unless @quiz.draft?
           render json: { error: "No se pueden eliminar preguntas de un quiz publicado" }, status: :unprocessable_entity
@@ -72,13 +62,6 @@ module Api
 
       def question_params
         params.permit(:body, :position, options_attributes: [:id, :body, :correct, :_destroy])
-      end
-
-      def authorize_quiz_admin!
-        unless current_user&.admin? && @quiz.user == current_user
-          render json: { error: "No tienes permiso para modificar este quiz" }, status: :forbidden
-          return
-        end
       end
 
       def question_json(question)

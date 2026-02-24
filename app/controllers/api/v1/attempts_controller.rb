@@ -4,14 +4,21 @@ module Api
       before_action :set_attempt, only: [:show, :submit]
 
       # GET /api/v1/attempts
+      # Soporta paginación: ?page=1&limit=10
       def index
-        attempts = current_user.quiz_attempts
-                     .includes(:quiz)
-                     .order(created_at: :desc)
+        scope = current_user.quiz_attempts.includes(:quiz).order(created_at: :desc)
+
+        limit = (params[:limit] || 10).to_i.clamp(1, 50)
+        @pagy, attempts = pagy(:offset, scope, limit: limit)
 
         render json: {
           data: attempts.map { |a| attempt_json(a) },
-          meta: { total: attempts.count }
+          meta: {
+            total: @pagy.count,
+            page: @pagy.page,
+            pages: @pagy.last,
+            limit: @pagy.limit[:limit]
+          }
         }
       end
 
