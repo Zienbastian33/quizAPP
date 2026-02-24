@@ -82,8 +82,10 @@ production:
   primary: &primary_production
     <<: *default
     database: quiz_app_production
-    username: quiz_app
+    username: <%= ENV.fetch("DB_USERNAME", "quiz_app") %>
     password: <%= ENV["QUIZ_APP_DATABASE_PASSWORD"] %>
+    host: <%= ENV.fetch("DB_HOST", "localhost") %>
+    port: <%= ENV.fetch("DB_PORT", "5432") %>
   cache:
     <<: *primary_production
     database: quiz_app_production_cache

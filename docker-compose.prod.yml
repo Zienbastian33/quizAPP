@@ -8,8 +8,9 @@ services:
       POSTGRES_DB: quiz_app_production
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U quiz_app"]
+      test: ["CMD-SHELL", "pg_isready -U quiz_app -d quiz_app_production"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -23,9 +24,11 @@ services:
     ports:
       - "80:80"
     environment:
-      DATABASE_URL: postgres://quiz_app:${POSTGRES_PASSWORD}@db:5432/quiz_app_production
       RAILS_ENV: production
       SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      QUIZ_APP_DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_HOST: db
+      DB_PORT: "5432"
       RAILS_LOG_TO_STDOUT: "true"
     volumes:
       - storage_data:/rails/storage
