@@ -1,4 +1,73 @@
-<div class="max-w-4xl mx-auto px-4 py-8">
-  <h1 class="text-3xl font-bold mb-6">Detalle del Quiz</h1>
-  <p class="text-gray-500">Se implementará en Fase 5</p>
+<div class="max-w-3xl mx-auto px-4 py-8">
+  <%# ══ Header del quiz ══ %>
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
+    <% if @quiz.cover_image.attached? %>
+      <%= image_tag @quiz.cover_image, class: "w-full h-56 object-cover" %>
+    <% else %>
+      <div class="w-full h-56 bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center">
+        <span class="text-8xl">🧠</span>
+      </div>
+    <% end %>
+
+    <div class="p-6">
+      <h1 class="text-3xl font-bold text-gray-900 mb-3"><%= @quiz.title %></h1>
+      <p class="text-gray-600 mb-4"><%= @quiz.description %></p>
+
+      <div class="flex gap-4 text-sm text-gray-500 mb-6">
+        <span>📝 <%= @total_questions %> preguntas</span>
+        <span>👤 <%= @quiz.user.name %></span>
+        <% if @quiz.published_at %>
+          <span>📅 <%= @quiz.published_at.strftime("%d/%m/%Y") %></span>
+        <% end %>
+      </div>
+
+      <% if user_signed_in? %>
+        <% if @existing_attempt %>
+          <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+            <p class="text-yellow-800 font-medium mb-2">Tienes un intento en progreso</p>
+            <%= link_to "Continuar Quiz →", quiz_attempt_path(@quiz, @existing_attempt),
+                class: "inline-block bg-yellow-500 text-white px-6 py-2.5 rounded-lg hover:bg-yellow-600 font-medium" %>
+          </div>
+        <% else %>
+          <%= button_to "Comenzar Quiz", quiz_attempts_path(@quiz),
+              method: :post,
+              class: "bg-indigo-600 text-white px-8 py-3 rounded-lg hover:bg-indigo-700 font-semibold text-lg" %>
+        <% end %>
+      <% else %>
+        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <p class="text-gray-600 mb-2">Necesitas una cuenta para responder este quiz.</p>
+          <%= link_to "Iniciar Sesión", new_user_session_path,
+              class: "inline-block bg-indigo-600 text-white px-6 py-2.5 rounded-lg hover:bg-indigo-700 font-medium" %>
+          <%= link_to "Registrarse", new_user_registration_path,
+              class: "inline-block bg-gray-200 text-gray-700 px-6 py-2.5 rounded-lg hover:bg-gray-300 font-medium ml-2" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <%# ══ Intentos anteriores ══ %>
+  <% if user_signed_in? && @completed_attempts&.any? %>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Tus intentos anteriores</h2>
+      <div class="space-y-3">
+        <% @completed_attempts.each do |attempt| %>
+          <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+            <div>
+              <span class="font-medium text-gray-900"><%= attempt.score %>/<%= attempt.total_questions %></span>
+              <span class="text-gray-500 text-sm ml-2">(<%= attempt.percentage %>%)</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-sm text-gray-400"><%= attempt.completed_at&.strftime("%d/%m/%Y %H:%M") %></span>
+              <%= link_to "Ver detalle", quiz_attempt_path(@quiz, attempt),
+                  class: "text-indigo-600 hover:text-indigo-800 text-sm font-medium" %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="mt-6">
+    <%= link_to "← Volver a quizzes", quizzes_path, class: "text-gray-500 hover:text-gray-700 text-sm" %>
+  </div>
 </div>

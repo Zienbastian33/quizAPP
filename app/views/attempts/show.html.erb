@@ -1,4 +1,190 @@
-<div class="max-w-4xl mx-auto px-4 py-8">
-  <h1 class="text-3xl font-bold mb-6">Intento de Quiz</h1>
-  <p class="text-gray-500">Se implementará en Fase 5</p>
+<div class="max-w-3xl mx-auto px-4 py-8">
+  <%# ══ Header con progreso ══ %>
+  <div class="mb-6">
+    <div class="flex justify-between items-center mb-2">
+      <h1 class="text-2xl font-bold text-gray-900"><%= @quiz.title %></h1>
+      <% if @attempt.completed? %>
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+          Completado
+        </span>
+      <% else %>
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+          En progreso
+        </span>
+      <% end %>
+    </div>
+
+    <div class="w-full bg-gray-200 rounded-full h-2.5 mb-1">
+      <% progress = @total_questions > 0 ? (@answered_count.to_f / @total_questions * 100) : 0 %>
+      <div class="bg-indigo-600 h-2.5 rounded-full transition-all duration-300"
+           style="width: <%= progress %>%"></div>
+    </div>
+    <p class="text-sm text-gray-500"><%= @answered_count %>/<%= @total_questions %> respondidas</p>
+  </div>
+
+  <% if @attempt.completed? %>
+    <%# ══ MODO RESULTADOS ══ %>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center mb-8">
+      <% percentage = @attempt.percentage %>
+      <div class="text-6xl mb-3">
+        <% if percentage >= 80 %>🏆
+        <% elsif percentage >= 60 %>👍
+        <% elsif percentage >= 40 %>📚
+        <% else %>💪
+        <% end %>
+      </div>
+      <p class="text-4xl font-bold text-gray-900 mb-1"><%= @attempt.score %>/<%= @attempt.total_questions %></p>
+      <p class="text-xl text-gray-500 mb-4"><%= percentage %>% correcto</p>
+
+      <% if percentage >= 80 %>
+        <p class="text-green-600 font-medium">¡Excelente resultado!</p>
+      <% elsif percentage >= 60 %>
+        <p class="text-blue-600 font-medium">¡Buen trabajo!</p>
+      <% elsif percentage >= 40 %>
+        <p class="text-yellow-600 font-medium">Puedes mejorar, ¡inténtalo de nuevo!</p>
+      <% else %>
+        <p class="text-red-600 font-medium">No te rindas, sigue practicando.</p>
+      <% end %>
+    </div>
+
+    <h2 class="text-xl font-semibold text-gray-900 mb-4">Detalle de respuestas</h2>
+    <div class="space-y-4">
+      <% @questions.each_with_index do |question, index| %>
+        <% answer = @attempt.attempt_answers.find_by(question: question) %>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+          <div class="flex items-start gap-3 mb-3">
+            <% if answer&.correct? %>
+              <span class="shrink-0 w-7 h-7 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-sm font-bold">✓</span>
+            <% elsif answer %>
+              <span class="shrink-0 w-7 h-7 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-sm font-bold">✗</span>
+            <% else %>
+              <span class="shrink-0 w-7 h-7 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center text-sm font-bold">—</span>
+            <% end %>
+            <h3 class="font-medium text-gray-900">
+              <span class="text-gray-400"><%= index + 1 %>.</span>
+              <%= question.body %>
+            </h3>
+          </div>
+
+          <% if question.image.attached? %>
+            <div class="mb-3 ml-10">
+              <%= image_tag question.image, class: "max-h-40 rounded-lg" %>
+            </div>
+          <% end %>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2 ml-10">
+            <% question.options.each do |option| %>
+              <%
+                is_selected = answer&.option_id == option.id
+                is_correct = option.correct?
+                css = if is_correct
+                        "bg-green-50 border-green-300 text-green-800"
+                      elsif is_selected && !is_correct
+                        "bg-red-50 border-red-300 text-red-800"
+                      else
+                        "bg-gray-50 border-gray-200 text-gray-600"
+                      end
+              %>
+              <div class="flex items-center gap-2 px-3 py-2 rounded-lg border text-sm <%= css %>">
+                <% if is_correct %>
+                  <span class="font-bold">✓</span>
+                <% elsif is_selected %>
+                  <span class="font-bold">✗</span>
+                <% else %>
+                  <span class="text-gray-300">○</span>
+                <% end %>
+                <%= option.body %>
+                <% if is_selected && !is_correct %>
+                  <span class="text-xs ml-auto">(tu respuesta)</span>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="mt-8 flex gap-3">
+      <%= link_to "← Volver al quiz", quiz_path(@quiz),
+          class: "bg-gray-100 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-200 font-medium" %>
+      <%= button_to "Intentar de nuevo", quiz_attempts_path(@quiz),
+          method: :post,
+          class: "bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 font-medium" %>
+    </div>
+
+  <% else %>
+    <%# ══ MODO QUIZ (respondiendo) ══ %>
+
+    <div class="space-y-6">
+      <% @questions.each_with_index do |question, index| %>
+        <% is_answered = @answered_ids.include?(question.id) %>
+        <% current_answer = @attempt.attempt_answers.find_by(question: question) %>
+
+        <div class="bg-white rounded-xl shadow-sm border p-5
+                    <%= is_answered ? 'border-green-200' : 'border-gray-200' %>"
+             id="question_<%= question.id %>">
+          <h3 class="font-medium text-gray-900 mb-3">
+            <span class="text-indigo-600 font-bold"><%= index + 1 %>.</span>
+            <%= question.body %>
+            <% if is_answered %>
+              <span class="text-green-500 text-sm ml-2">✓ respondida</span>
+            <% end %>
+          </h3>
+
+          <% if question.image.attached? %>
+            <div class="mb-3">
+              <%= image_tag question.image, class: "max-h-48 rounded-lg" %>
+            </div>
+          <% end %>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <% question.options.each do |option| %>
+              <% is_selected = current_answer&.option_id == option.id %>
+              <%= button_to quiz_attempt_answers_path(@quiz, @attempt,
+                    question_id: question.id, option_id: option.id),
+                    method: :post,
+                    class: "text-left px-4 py-3 rounded-lg border transition text-sm
+                           #{is_selected ?
+                             'bg-indigo-50 border-indigo-300 text-indigo-800 font-medium' :
+                             'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100 hover:border-gray-300'}" do %>
+                <span class="flex items-center gap-2">
+                  <% if is_selected %>
+                    <span class="w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center">
+                      <span class="w-2 h-2 rounded-full bg-white"></span>
+                    </span>
+                  <% else %>
+                    <span class="w-5 h-5 rounded-full border-2 border-gray-300"></span>
+                  <% end %>
+                  <%= option.body %>
+                </span>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <%# ══ Botón finalizar ══ %>
+    <div class="mt-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6 text-center">
+      <p class="text-gray-600 mb-3">
+        Has respondido <strong><%= @answered_count %></strong> de <strong><%= @total_questions %></strong> preguntas.
+      </p>
+
+      <% if @answered_count == @total_questions %>
+        <%= button_to "Finalizar Quiz", submit_quiz_attempt_path(@quiz, @attempt),
+            method: :post,
+            class: "bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 font-semibold text-lg",
+            data: { turbo_confirm: "¿Finalizar el quiz? No podrás cambiar tus respuestas después." } %>
+      <% elsif @answered_count > 0 %>
+        <%= button_to "Finalizar Quiz (#{@answered_count}/#{@total_questions} respondidas)",
+            submit_quiz_attempt_path(@quiz, @attempt),
+            method: :post,
+            class: "bg-yellow-500 text-white px-8 py-3 rounded-lg hover:bg-yellow-600 font-semibold",
+            data: { turbo_confirm: "Aún no has respondido todas las preguntas. ¿Finalizar de todas formas?" } %>
+      <% else %>
+        <p class="text-gray-400 text-sm">Responde al menos una pregunta para poder finalizar.</p>
+      <% end %>
+    </div>
+  <% end %>
 </div>
