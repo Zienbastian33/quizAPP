@@ -1,5 +1,81 @@
-<div class="max-w-4xl mx-auto px-4 py-8">
-  <h1 class="text-3xl font-bold mb-6">Panel de Administración</h1>
-  <p class="text-gray-600 mb-4">Bienvenido, <%= current_user.name %></p>
-  <p class="text-gray-500">Dashboard completo se implementará en Fase 4</p>
+<div class="max-w-6xl mx-auto">
+  <h1 class="text-3xl font-bold text-gray-900 mb-8">Dashboard</h1>
+
+  <%# ══ Tarjetas de estadísticas ══ %>
+  <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-10">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+      <p class="text-sm text-gray-500 mb-1">Total Quizzes</p>
+      <p class="text-3xl font-bold text-gray-900"><%= @total_quizzes %></p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-green-200 p-5">
+      <p class="text-sm text-green-600 mb-1">Publicados</p>
+      <p class="text-3xl font-bold text-green-700"><%= @published_quizzes %></p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-yellow-200 p-5">
+      <p class="text-sm text-yellow-600 mb-1">Borradores</p>
+      <p class="text-3xl font-bold text-yellow-700"><%= @draft_quizzes %></p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-blue-200 p-5">
+      <p class="text-sm text-blue-600 mb-1">Preguntas</p>
+      <p class="text-3xl font-bold text-blue-700"><%= @total_questions %></p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-purple-200 p-5">
+      <p class="text-sm text-purple-600 mb-1">Intentos</p>
+      <p class="text-3xl font-bold text-purple-700"><%= @total_attempts %></p>
+    </div>
+  </div>
+
+  <%# ══ Quizzes recientes ══ %>
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-xl font-semibold text-gray-900">Quizzes Recientes</h2>
+    <%= link_to "Nuevo Quiz", new_admin_quiz_path,
+        class: "bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 text-sm font-medium" %>
+  </div>
+
+  <% if @recent_quizzes.any? %>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <table class="w-full">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Título</th>
+            <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Estado</th>
+            <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Preguntas</th>
+            <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Intentos</th>
+            <th class="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <% @recent_quizzes.each do |quiz| %>
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4">
+                <%= link_to quiz.title, admin_quiz_path(quiz), class: "text-indigo-600 hover:text-indigo-800 font-medium" %>
+              </td>
+              <td class="px-6 py-4">
+                <% if quiz.published? %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Publicado</span>
+                <% else %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Borrador</span>
+                <% end %>
+              </td>
+              <td class="px-6 py-4 text-gray-600"><%= quiz.questions.count %></td>
+              <td class="px-6 py-4 text-gray-600"><%= quiz.quiz_attempts.count %></td>
+              <td class="px-6 py-4 text-right">
+                <%= link_to "Ver", admin_quiz_path(quiz), class: "text-indigo-600 hover:text-indigo-800 text-sm" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+      <p class="text-gray-500 mb-4">Aún no has creado ningún quiz.</p>
+      <%= link_to "Crear mi primer quiz", new_admin_quiz_path,
+          class: "bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700" %>
+    </div>
+  <% end %>
 </div>

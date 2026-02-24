@@ -1,4 +1,58 @@
-<div class="max-w-4xl mx-auto px-4 py-8">
-  <h1 class="text-3xl font-bold mb-6">Mis Quizzes (Admin)</h1>
-  <p class="text-gray-500">Se implementará en Fase 4</p>
+<div class="max-w-6xl mx-auto">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-900">Mis Quizzes</h1>
+    <%= link_to "Nuevo Quiz", new_admin_quiz_path,
+        class: "bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 font-medium" %>
+  </div>
+
+  <% if @quizzes.any? %>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <% @quizzes.each do |quiz| %>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
+          <% if quiz.cover_image.attached? %>
+            <%= image_tag quiz.cover_image, class: "w-full h-40 object-cover" %>
+          <% else %>
+            <div class="w-full h-40 bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center">
+              <span class="text-5xl">🧠</span>
+            </div>
+          <% end %>
+
+          <div class="p-5">
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="text-lg font-semibold text-gray-900"><%= quiz.title %></h3>
+              <% if quiz.published? %>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Publicado</span>
+              <% else %>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Borrador</span>
+              <% end %>
+            </div>
+
+            <p class="text-gray-600 text-sm mb-3 line-clamp-2"><%= quiz.description %></p>
+
+            <div class="flex justify-between items-center text-sm text-gray-500 mb-4">
+              <span><%= quiz.questions.count %> preguntas</span>
+              <span><%= quiz.quiz_attempts.count %> intentos</span>
+            </div>
+
+            <div class="flex gap-2">
+              <%= link_to "Ver", admin_quiz_path(quiz),
+                  class: "flex-1 text-center bg-indigo-50 text-indigo-700 px-3 py-2 rounded-lg hover:bg-indigo-100 text-sm font-medium" %>
+              <% if quiz.draft? %>
+                <%= link_to "Editar", edit_admin_quiz_path(quiz),
+                    class: "flex-1 text-center bg-gray-50 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-100 text-sm font-medium" %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+      <p class="text-5xl mb-4">📝</p>
+      <p class="text-xl text-gray-600 mb-2">Aún no has creado ningún quiz</p>
+      <p class="text-gray-400 mb-6">Comienza creando tu primer quiz para que los players puedan responderlo.</p>
+      <%= link_to "Crear mi primer quiz", new_admin_quiz_path,
+          class: "bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 font-medium" %>
+    </div>
+  <% end %>
 </div>
