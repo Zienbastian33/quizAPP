@@ -31,6 +31,13 @@ module Api
         end
       end
 
+      # Autenticación opcional: parsea el token si está presente, sin requerir
+      # Útil para endpoints públicos que cambian comportamiento si hay usuario
+      def authenticate_api_user_if_present!
+        token = request.headers["Authorization"]&.split(" ")&.last
+        @current_api_user = User.find_by(api_token: token) if token
+      end
+
       # Método para acceder al usuario actual en la API
       def current_user
         @current_api_user
