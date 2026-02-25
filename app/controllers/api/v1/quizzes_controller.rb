@@ -93,7 +93,7 @@ module Api
       end
 
       def quiz_params
-        params.permit(:title, :description)
+        params.require(:quiz).permit(:title, :description)
       end
 
       def quiz_json(quiz, detail: false)

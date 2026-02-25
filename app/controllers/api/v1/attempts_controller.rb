@@ -17,7 +17,7 @@ module Api
             total: @pagy.count,
             page: @pagy.page,
             pages: @pagy.last,
-            limit: @pagy.limit[:limit]
+            limit: @pagy.limit
           }
         }
       end
