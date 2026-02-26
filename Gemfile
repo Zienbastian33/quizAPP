@@ -45,7 +45,7 @@ gem "thruster", require: false
 # === Gemas del proyecto ===
 gem "devise", "~> 5.0"        # Autenticación (login, registro, etc.) — v5.0.2
 gem "pundit", "~> 2.5"        # Autorización (roles y permisos) — v2.5.2
-gem "pagy", "~> 43.0"         # v43.3.0 # Paginación de resultados
+gem "pagy", "~> 43.3"         # v43.3.0 # Paginación de resultados
 
 
 group :development, :test do
